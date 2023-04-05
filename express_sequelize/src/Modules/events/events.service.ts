@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import Event from './entities/event.entity';
 import Workshop from './entities/workshop.entity';
 
@@ -86,22 +87,23 @@ export class EventsService {
      */
 
   async getEventsWithWorkshops() {
-    const events = await Event.findAll({
-      include: {
-        model: Workshop,
-      },
+    let events = await Event.findAll({
+      include: Workshop,
+      // I have changed the associations since, it makes most sense to me.
     });
 
-    const modifiedEvents = events.map(event => event.toJSON());
+    events = events.map(event => event.toJSON());
 
-    const workshops = modifiedEvents.map(event  => {
+    const eventsWithSortedWorkshops = events.map(event  => {
       return {
         ...event,
         workshops: event.workshops.sort((a: any, b: any) => a.id - b.id),
+        // This should be happened within the SQL query as well but not sure, my `order` property isn't working very well so, 
+        // for the sake of limited time, I am pushing using javascript sort
       }
     })
 
-    return workshops;
+    return eventsWithSortedWorkshops;
   }
 
   /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
@@ -171,6 +173,19 @@ export class EventsService {
     ```
      */
   async getFutureEventWithWorkshops() {
-    throw new Error('TODO task 2');
+    let events = await Event.findAll({
+      include: {
+        model:  Workshop,
+        where: {
+          start: {
+            [Op.gt]: new Date()
+          }
+        }
+      },
+    });
+
+    events = events.map((event: any) => event.toJSON());
+
+    return events;
   }
 }
