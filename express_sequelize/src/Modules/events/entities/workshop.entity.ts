@@ -3,9 +3,11 @@ import {
   Column,
   Model,
   AutoIncrement,
-  PrimaryKey
+  PrimaryKey,
+  BelongsTo
 } from 'sequelize-typescript';
 import { ModelAttributeColumnOptions } from 'sequelize';
+import Event from './event.entity';
 
 
 @Table({
@@ -34,4 +36,7 @@ export default class Workshop extends Model {
 
   @Column({ type: 'datetime' } as ModelAttributeColumnOptions)
   declare createdAt: string;
+
+  @BelongsTo(() => Event, 'eventId')
+  event: Event;
 }
